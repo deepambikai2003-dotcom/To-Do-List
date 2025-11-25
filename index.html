@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Advanced To-Do App</title>
+
+<style>
+    body{
+      font-family: Poppins, sans-serif;
+      background: linear-gradient(90deg,#e7066f,#11c6e6);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0;
+      color: #fff;
+    }
+
+    .container{
+      width: 380px;
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 25px;
+      color: #333;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    h2{
+      text-align: center;
+      color: #6a11cb;
+      text-shadow: 1px 1px 3px #ddd;
+    }
+
+    #taskCount{
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #ff0080;
+    }
+
+    .input-area{
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    input{
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      border: 2px solid #6a11cb;
+      outline: none;
+    }
+
+    button{
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      background: #6a11cb;
+      color: white;
+      transition: .3s;
+    }
+
+    button:hover{
+      background: #ff0080;
+      transform: scale(1.05);
+    }
+
+    ul{
+      list-style: none;
+      padding: 0;
+    }
+
+    li{
+      background: #f3f3f3;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 8px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      animation: fade .3s;
+    }
+
+    @keyframes fade{
+      from{opacity:0; transform:translateY(10px);}
+      to{opacity:1; transform:translateY(0);}
+    }
+
+    .completed{
+      text-decoration: line-through;
+      color: #777;
+    }
+
+    .actions button{
+      margin-left: 5px;
+      padding: 6px 10px;
+      border-radius: 6px;
+    }
+
+    .edit{ background:#00bcd4; }
+    .delete{ background:#f44336; }
+    .done{ background:#4caf50; }
+
+    #clearAll{
+      width: 100%;
+      margin-top: 10px;
+      background: #ff1744;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h2>📝 TO-DO LIST</h2>
+  <div id="taskCount">0 Tasks</div>
+
+  <div class="input-area">
+    <input type="text" id="task" placeholder="Enter task...">
+    <button onclick="addTask()">Add</button>
+  </div>
+
+  <ul id="list"></ul>
+
+  <button id="clearAll" onclick="clearAll()">Delete All Tasks</button>
+</div>
+
+<script>
+  let list = document.getElementById("list");
+
+  // Load tasks from local storage
+  window.onload = function(){
+    let saved = JSON.parse(localStorage.getItem("tasks")) || [];
+    saved.forEach(t => createTaskElement(t.text, t.completed));
+    updateCount();
+  };
+
+  function addTask(){
+    let task = document.getElementById("task");
+    if(task.value.trim() === ""){
+      alert("Please enter a task!");
+      return;
+    }
+    
+    createTaskElement(task.value, false);
+    saveTasks();
+    task.value = "";
+  }
+
+  function createTaskElement(text, completed){
+    let li = document.createElement("li");
+    
+    li.innerHTML = `
+      <span class="${completed ? 'completed' : ''}" onclick="toggleComplete(this)">${text}</span>
+      <div class="actions">
+        <button class="done" onclick="toggleComplete(this.parentElement.previousElementSibling)">✓</button>
+        <button class="edit" onclick="editTask(this)">✎</button>
+        <button class="delete" onclick="removeTask(this)">X</button>
+      </div>
+    `;
+
+    list.appendChild(li);
+    updateCount();
+  }
+
+  function toggleComplete(el){
+    el.classList.toggle("completed");
+    saveTasks();
+  }
+
+  function editTask(btn){
+    let oldText = btn.parentElement.previousElementSibling.innerText;
+    let newText = prompt("Edit task:", oldText);
+
+    if(newText !== null && newText.trim() !== ""){
+      btn.parentElement.previousElementSibling.innerText = newText;
+      saveTasks();
+    }
+  }
+
+  function removeTask(btn){
+    btn.parentElement.parentElement.remove();
+    saveTasks();
+    updateCount();
+  }
+
+  function clearAll(){
+    list.innerHTML = "";
+    saveTasks();
+    updateCount();
+  }
+
+  // Save tasks in localStorage
+  function saveTasks(){
+    let tasks = [];
+    document.querySelectorAll("#list li span").forEach(item => {
+      tasks.push({ text: item.innerText, completed: item.classList.contains("completed") });
+    });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+
+  function updateCount(){
+    let count = document.querySelectorAll("#list li").length;
+    document.getElementById("taskCount").innerText = count + " Tasks";
+  }
+</script>
+
+</body>
+</html>
